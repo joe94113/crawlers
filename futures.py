@@ -36,6 +36,7 @@ def crawl(url):
 
     rows = trs[3:]
     data = {}
+    date_data = {}
     for row in rows:
         tds = row.find_all('td')
         cells = [td.text.strip() for td in tds]
