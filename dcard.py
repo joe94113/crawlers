@@ -1,4 +1,4 @@
-import time
+# import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -18,13 +18,13 @@ def get_comments(dom):
     soup = BeautifulSoup(dom, 'html.parser')
     name = soup.find('div', 'sc-7fxob4-4 eiOVFy').text
     comment = soup.find('div', 'phqjxq-0 frrmdi').span.text.strip()
-    time.sleep(1)
+    # time.sleep(1)
     return name, comment
 
 
 def get_data():
     data = {}
-    for count in range(1000):
+    for count in range(900):
         url = f'{DCARD_URL}/trending/p/234780984/b/{count}'
         dom = get_web_page(url)
         if dom is None:
