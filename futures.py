@@ -2,13 +2,26 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from pprint import pprint
+from threading import Thread
+import json
 
 
-def crawl(date):
-    print('crawling', date.strftime('%Y/%m/%d'))
-    r = requests.get(
-        'https://www.taifex.com.tw/cht/3/futContractsDate?queryDate={}%2F{}%2F{}'.format(date.year, date.month,
-                                                                                         date.day))
+def get_url():
+    date = datetime.today()
+    urls = []
+    while True:
+        urls.append(
+            'https://www.taifex.com.tw/cht/3/futContractsDate?queryDate={}%2F{}%2F{}'.format(date.year, date.month,
+                                                                                             date.day))
+        date = date - timedelta(days=1)
+        if date < datetime.today() - timedelta(days=5):
+            break
+    return urls
+
+
+def crawl(url):
+    print('crawling', url)
+    r = requests.get(url)
     if r.status_code == requests.codes.ok:
         soup = BeautifulSoup(r.text, 'html.parser')
     else:
@@ -18,7 +31,7 @@ def crawl(date):
         table = soup.find('table', class_='table_f')
         trs = table.find_all('tr')
     except AttributeError:
-        print('no data for', date.strftime('%Y/%m/%d'))
+        print('no data for', url)
         return
 
     rows = trs[3:]
@@ -50,18 +63,16 @@ def crawl(date):
             data[product] = {who: contents}
         else:
             data[product][who] = contents
-    pprint(data)
+    jsonStr = json.dumps(data, ensure_ascii=False)
     # print(data['小型臺指期貨']['自營商']['未平倉淨口數'])
     # pprint(data)
-    return data
+    return jsonStr
 
 
-date = datetime.today()
-while True:
-    data = crawl(date)
-    date = date - timedelta(days=1)
-    if date < datetime.today() - timedelta(days=5):
-        break
+urls = get_url()
+for url in urls:
+    jsonStr = crawl(url)
+pprint(jsonStr)
 
 # threads =[]
 # for i in range(5):
